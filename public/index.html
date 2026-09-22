@@ -1,0 +1,964 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tasko — By vardhan</title>
+
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Bootstrap Icons -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+    />
+
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
+  <body>
+    <div id="app" class="app-layout">
+      <!-- ================================================================= -->
+      <!-- 1. TOP NAVBAR                                                     -->
+      <!-- ================================================================= -->
+      <header class="top-nav">
+        <div class="nav-left">
+          <div class="brand-logo">
+            <i class="bi bi-kanban-fill"></i>
+            <span class="brand-name">Tasko</span>
+            <span class="brand-tag">Collaborative</span>
+          </div>
+
+          <div class="project-selector-wrapper">
+            <label for="projectSelect" class="sr-only">Active Project</label>
+            <select
+              id="projectSelect"
+              class="project-dropdown"
+              onchange="app.switchProject(this.value)"
+            >
+              <!-- Populated dynamically -->
+              <option value="">Loading projects...</option>
+            </select>
+            <button
+              class="btn btn-sm btn-outline"
+              onclick="app.openNewProjectModal()"
+              title="Create New Project"
+            >
+              <i class="bi bi-folder-plus"></i>
+              <span>New Project</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="nav-center">
+          <div class="search-box">
+            <i class="bi bi-search"></i>
+            <input
+              type="text"
+              id="boardSearch"
+              placeholder="Search tasks by title, label, or assignee..."
+              oninput="app.filterTasks()"
+            />
+            <button
+              class="clear-search-btn"
+              onclick="app.clearSearch()"
+              id="clearSearchBtn"
+              style="display: none"
+            >
+              <i class="bi bi-x"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="nav-right">
+          <!-- Live WebSocket indicator -->
+          <div
+            class="live-status-pill"
+            id="socketStatus"
+            title="Real-time collaboration active"
+          >
+            <span class="pulse-dot"></span>
+            <span class="status-text">Live Sync</span>
+          </div>
+
+          <!-- Notification Bell -->
+          <div class="notifications-menu-container">
+            <button
+              class="icon-btn"
+              id="notifBellBtn"
+              onclick="app.toggleNotificationsDropdown()"
+              title="Notifications"
+            >
+              <i class="bi bi-bell-fill"></i>
+              <span class="notif-badge" id="notifBadge" style="display: none"
+                >0</span
+              >
+            </button>
+
+            <div
+              class="notifications-dropdown"
+              id="notifDropdown"
+              style="display: none"
+            >
+              <div class="dropdown-header">
+                <h4>Notifications</h4>
+                <button
+                  class="text-btn"
+                  onclick="app.markAllNotificationsRead()"
+                >
+                  Mark all read
+                </button>
+              </div>
+              <div class="notification-list" id="notificationList">
+                <div class="empty-notif">No new notifications</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Theme Toggle -->
+          <button
+            class="icon-btn"
+            id="themeToggleBtn"
+            onclick="app.toggleTheme()"
+            title="Toggle Dark/Light Mode"
+          >
+            <i class="bi bi-sun-fill" id="themeIcon"></i>
+          </button>
+
+          <!-- User Profile & Quick Demo Switch -->
+          <div class="user-profile-menu-container" id="userMenuContainer">
+            <!-- Populated when logged in or logged out -->
+            <button
+              class="btn btn-primary btn-sm"
+              onclick="app.openAuthModal('login')"
+            >
+              <i class="bi bi-box-arrow-in-right"></i> Sign In
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <!-- ================================================================= -->
+      <!-- 2. PROJECT HERO / SUBHEADER                                       -->
+      <!-- ================================================================= -->
+      <div class="project-hero" id="projectHero">
+        <div class="hero-main">
+          <div class="project-identity">
+            <span class="project-color-indicator" id="heroProjectColor"></span>
+            <div>
+              <div class="title-row">
+                <h1 id="heroProjectName">Loading Project...</h1>
+                <span class="category-badge" id="heroProjectCategory"
+                  >General</span
+                >
+              </div>
+              <p id="heroProjectDesc" class="project-desc">
+                Project description...
+              </p>
+            </div>
+          </div>
+
+          <div class="hero-actions">
+            <div class="team-avatars-group" id="heroMembersList">
+              <!-- Avatars populated dynamically -->
+            </div>
+            <button
+              class="btn btn-outline btn-sm"
+              onclick="app.openInviteModal()"
+            >
+              <i class="bi bi-person-plus-fill"></i> Add Member
+            </button>
+            <button class="btn btn-primary" onclick="app.openNewTaskModal()">
+              <i class="bi bi-plus-lg"></i> Add Task
+            </button>
+          </div>
+        </div>
+
+        <!-- Filters Row -->
+        <div class="hero-filters">
+          <div class="filter-group">
+            <span class="filter-label"
+              ><i class="bi bi-funnel"></i> Priority:</span
+            >
+            <div class="pill-filters" id="priorityFilters">
+              <button
+                class="pill active"
+                data-priority="all"
+                onclick="app.setPriorityFilter('all')"
+              >
+                All
+              </button>
+              <button
+                class="pill"
+                data-priority="urgent"
+                onclick="app.setPriorityFilter('urgent')"
+              >
+                Urgent
+              </button>
+              <button
+                class="pill"
+                data-priority="high"
+                onclick="app.setPriorityFilter('high')"
+              >
+                High
+              </button>
+              <button
+                class="pill"
+                data-priority="medium"
+                onclick="app.setPriorityFilter('medium')"
+              >
+                Medium
+              </button>
+              <button
+                class="pill"
+                data-priority="low"
+                onclick="app.setPriorityFilter('low')"
+              >
+                Low
+              </button>
+            </div>
+          </div>
+
+          <div class="filter-group">
+            <span class="filter-label"
+              ><i class="bi bi-person"></i> Assignee:</span
+            >
+            <select
+              id="assigneeFilter"
+              class="filter-dropdown"
+              onchange="app.setAssigneeFilter(this.value)"
+            >
+              <option value="all">Everyone</option>
+              <!-- Populated dynamically -->
+            </select>
+          </div>
+
+          <div class="board-stats" id="boardStats">
+            <span class="stat-item"
+              ><strong id="statTotalTasks">0</strong> Tasks</span
+            >
+            <span class="stat-divider">•</span>
+            <span class="stat-item"
+              ><strong id="statDoneTasks">0</strong> Completed</span
+            >
+          </div>
+        </div>
+      </div>
+
+      <!-- ================================================================= -->
+      <!-- 3. KANBAN BOARD CONTAINER                                         -->
+      <!-- ================================================================= -->
+      <main class="board-canvas" id="boardCanvas">
+        <!-- Column: To Do -->
+        <div class="kanban-column" data-column="todo" id="col-todo">
+          <div class="column-header">
+            <div class="column-title-group">
+              <span class="col-indicator todo"></span>
+              <h3>To Do</h3>
+              <span class="col-count" id="count-todo">0</span>
+            </div>
+            <button
+              class="icon-btn-ghost"
+              onclick="app.openNewTaskModal('todo')"
+              title="Add Task in To Do"
+            >
+              <i class="bi bi-plus"></i>
+            </button>
+          </div>
+          <div
+            class="cards-dropzone"
+            id="dropzone-todo"
+            ondragover="app.handleDragOver(event)"
+            ondragleave="app.handleDragLeave(event)"
+            ondrop="app.handleDrop(event, 'todo')"
+          >
+            <!-- Task cards injected here -->
+          </div>
+        </div>
+
+        <!-- Column: In Progress -->
+        <div
+          class="kanban-column"
+          data-column="in_progress"
+          id="col-in_progress"
+        >
+          <div class="column-header">
+            <div class="column-title-group">
+              <span class="col-indicator in_progress"></span>
+              <h3>In Progress</h3>
+              <span class="col-count" id="count-in_progress">0</span>
+            </div>
+            <button
+              class="icon-btn-ghost"
+              onclick="app.openNewTaskModal('in_progress')"
+              title="Add Task in In Progress"
+            >
+              <i class="bi bi-plus"></i>
+            </button>
+          </div>
+          <div
+            class="cards-dropzone"
+            id="dropzone-in_progress"
+            ondragover="app.handleDragOver(event)"
+            ondragleave="app.handleDragLeave(event)"
+            ondrop="app.handleDrop(event, 'in_progress')"
+          >
+            <!-- Task cards injected here -->
+          </div>
+        </div>
+
+        <!-- Column: In Review -->
+        <div class="kanban-column" data-column="review" id="col-review">
+          <div class="column-header">
+            <div class="column-title-group">
+              <span class="col-indicator review"></span>
+              <h3>In Review</h3>
+              <span class="col-count" id="count-review">0</span>
+            </div>
+            <button
+              class="icon-btn-ghost"
+              onclick="app.openNewTaskModal('review')"
+              title="Add Task in Review"
+            >
+              <i class="bi bi-plus"></i>
+            </button>
+          </div>
+          <div
+            class="cards-dropzone"
+            id="dropzone-review"
+            ondragover="app.handleDragOver(event)"
+            ondragleave="app.handleDragLeave(event)"
+            ondrop="app.handleDrop(event, 'review')"
+          >
+            <!-- Task cards injected here -->
+          </div>
+        </div>
+
+        <!-- Column: Done -->
+        <div class="kanban-column" data-column="done" id="col-done">
+          <div class="column-header">
+            <div class="column-title-group">
+              <span class="col-indicator done"></span>
+              <h3>Completed</h3>
+              <span class="col-count" id="count-done">0</span>
+            </div>
+            <button
+              class="icon-btn-ghost"
+              onclick="app.openNewTaskModal('done')"
+              title="Add Task in Completed"
+            >
+              <i class="bi bi-plus"></i>
+            </button>
+          </div>
+          <div
+            class="cards-dropzone"
+            id="dropzone-done"
+            ondragover="app.handleDragOver(event)"
+            ondragleave="app.handleDragLeave(event)"
+            ondrop="app.handleDrop(event, 'done')"
+          >
+            <!-- Task cards injected here -->
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <!-- ================================================================= -->
+    <!-- 4. MODALS & DRAWERS                                               -->
+    <!-- ================================================================= -->
+
+    <!-- Modal: Task Detail & Comments Modal -->
+    <div class="modal-backdrop" id="taskDetailModal" style="display: none">
+      <div class="modal-content task-detail-dialog">
+        <div class="modal-header">
+          <div class="task-modal-status-badge" id="modalColumnBadge">To Do</div>
+          <div class="modal-header-actions">
+            <button
+              class="btn btn-sm btn-danger-outline"
+              onclick="app.confirmDeleteCurrentTask()"
+              title="Delete task"
+            >
+              <i class="bi bi-trash"></i> Delete
+            </button>
+            <button
+              class="close-modal-btn"
+              onclick="app.closeTaskDetailModal()"
+            >
+              &times;
+            </button>
+          </div>
+        </div>
+
+        <div class="modal-body task-modal-grid">
+          <!-- Left Side: Task Content & Checklist -->
+          <div class="task-main-pane">
+            <input
+              type="text"
+              id="modalTaskTitle"
+              class="task-title-input"
+              placeholder="Task Title..."
+              onchange="app.saveTaskDetailsDebounced()"
+            />
+
+            <div class="form-group mt-3">
+              <label class="form-label"
+                ><i class="bi bi-text-paragraph"></i> Description</label
+              >
+              <textarea
+                id="modalTaskDesc"
+                class="form-textarea"
+                rows="4"
+                placeholder="Add a detailed description..."
+                onchange="app.saveTaskDetailsDebounced()"
+              ></textarea>
+            </div>
+
+            <!-- Checklist / Subtasks -->
+            <div class="checklist-section mt-4">
+              <div class="section-title-row">
+                <h4>
+                  <i class="bi bi-check2-square"></i> Checklist / Subtasks
+                </h4>
+                <span id="modalChecklistProgress" class="checklist-stat"
+                  >0/0 completed</span
+                >
+              </div>
+              <div class="progress-bar-container">
+                <div
+                  class="progress-bar-fill"
+                  id="modalChecklistBar"
+                  style="width: 0%"
+                ></div>
+              </div>
+
+              <div class="checklist-items" id="modalChecklistItems">
+                <!-- Check items populated here -->
+              </div>
+
+              <form
+                class="add-check-row mt-2"
+                onsubmit="app.addChecklistItem(event)"
+              >
+                <input
+                  type="text"
+                  id="newCheckItemText"
+                  class="form-input"
+                  placeholder="Add a new checklist item..."
+                />
+                <button type="submit" class="btn btn-sm btn-secondary">
+                  Add
+                </button>
+              </form>
+            </div>
+
+            <!-- Comments Feed -->
+            <div class="comments-section mt-4">
+              <h4><i class="bi bi-chat-left-text"></i> Activity & Comments</h4>
+
+              <form
+                class="comment-form mt-2"
+                onsubmit="app.submitTaskComment(event)"
+              >
+                <textarea
+                  id="taskCommentInput"
+                  class="form-textarea"
+                  rows="2"
+                  placeholder="Write a comment or update for the team..."
+                ></textarea>
+                <div class="comment-form-actions">
+                  <button type="submit" class="btn btn-primary btn-sm">
+                    <i class="bi bi-send-fill"></i> Post Comment
+                  </button>
+                </div>
+              </form>
+
+              <div class="comments-stream mt-3" id="modalCommentsStream">
+                <!-- Comments dynamically rendered -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Side: Sidebar Meta Attributes -->
+          <div class="task-meta-pane">
+            <div class="meta-field">
+              <label><i class="bi bi-flag"></i> Priority</label>
+              <select
+                id="modalTaskPriority"
+                class="form-select"
+                onchange="app.saveTaskDetailsDebounced()"
+              >
+                <option value="low">🟢 Low</option>
+                <option value="medium">🟡 Medium</option>
+                <option value="high">🟠 High</option>
+                <option value="urgent">🔴 Urgent</option>
+              </select>
+            </div>
+
+            <div class="meta-field mt-3">
+              <label><i class="bi bi-kanban"></i> Column Stage</label>
+              <select
+                id="modalTaskColumn"
+                class="form-select"
+                onchange="app.saveTaskDetailsDebounced()"
+              >
+                <option value="todo">To Do</option>
+                <option value="in_progress">In Progress</option>
+                <option value="review">In Review</option>
+                <option value="done">Completed</option>
+              </select>
+            </div>
+
+            <div class="meta-field mt-3">
+              <label><i class="bi bi-calendar3"></i> Due Date</label>
+              <input
+                type="date"
+                id="modalTaskDueDate"
+                class="form-input"
+                onchange="app.saveTaskDetailsDebounced()"
+              />
+            </div>
+
+            <div class="meta-field mt-3">
+              <label><i class="bi bi-tags"></i> Labels</label>
+              <input
+                type="text"
+                id="modalTaskLabels"
+                class="form-input"
+                placeholder="e.g. Frontend, Bug, API"
+                onchange="app.saveTaskDetailsDebounced()"
+              />
+            </div>
+
+            <div class="meta-field mt-3">
+              <label><i class="bi bi-people"></i> Assignees</label>
+              <div class="assignees-selector-box" id="modalAssigneesBox">
+                <!-- Checkboxes for project members -->
+              </div>
+            </div>
+
+            <div class="meta-info-box mt-4">
+              <small class="text-muted"
+                >Created by: <span id="modalTaskCreatedBy">-</span></small
+              >
+              <br />
+              <small class="text-muted"
+                >Created at: <span id="modalTaskCreatedAt">-</span></small
+              >
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal: Create New Task -->
+    <div class="modal-backdrop" id="newTaskModal" style="display: none">
+      <div class="modal-content modal-sm">
+        <div class="modal-header">
+          <h3><i class="bi bi-plus-circle"></i> Create New Task</h3>
+          <button class="close-modal-btn" onclick="app.closeNewTaskModal()">
+            &times;
+          </button>
+        </div>
+        <form onsubmit="app.handleCreateTask(event)">
+          <div class="modal-body">
+            <div class="form-group">
+              <label class="form-label">Task Title *</label>
+              <input
+                type="text"
+                id="newTaskTitle"
+                class="form-input"
+                placeholder="e.g. Implement WebSockets live sync"
+                required
+              />
+            </div>
+
+            <div class="form-group mt-3">
+              <label class="form-label">Description</label>
+              <textarea
+                id="newTaskDesc"
+                class="form-textarea"
+                rows="3"
+                placeholder="Add helpful context or requirements..."
+              ></textarea>
+            </div>
+
+            <div class="grid-2-col mt-3">
+              <div class="form-group">
+                <label class="form-label">Column</label>
+                <select id="newTaskColumn" class="form-select">
+                  <option value="todo">To Do</option>
+                  <option value="in_progress">In Progress</option>
+                  <option value="review">In Review</option>
+                  <option value="done">Completed</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Priority</label>
+                <select id="newTaskPriority" class="form-select">
+                  <option value="medium">🟡 Medium</option>
+                  <option value="urgent">🔴 Urgent</option>
+                  <option value="high">🟠 High</option>
+                  <option value="low">🟢 Low</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="grid-2-col mt-3">
+              <div class="form-group">
+                <label class="form-label">Due Date</label>
+                <input type="date" id="newTaskDueDate" class="form-input" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Labels (comma-separated)</label>
+                <input
+                  type="text"
+                  id="newTaskLabels"
+                  class="form-input"
+                  placeholder="Design, API, Urgent"
+                />
+              </div>
+            </div>
+
+            <div class="form-group mt-3">
+              <label class="form-label">Assign To</label>
+              <div class="assignees-selector-box" id="newTaskAssigneesBox">
+                <!-- Populated with project members -->
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              onclick="app.closeNewTaskModal()"
+            >
+              Cancel
+            </button>
+            <button type="submit" class="btn btn-primary">Create Task</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Modal: Create New Project -->
+    <div class="modal-backdrop" id="newProjectModal" style="display: none">
+      <div class="modal-content modal-sm">
+        <div class="modal-header">
+          <h3><i class="bi bi-folder-plus"></i> Create New Group Project</h3>
+          <button class="close-modal-btn" onclick="app.closeNewProjectModal()">
+            &times;
+          </button>
+        </div>
+        <form onsubmit="app.handleCreateProject(event)">
+          <div class="modal-body">
+            <div class="form-group">
+              <label class="form-label">Project Name *</label>
+              <input
+                type="text"
+                id="newProjectName"
+                class="form-input"
+                placeholder="e.g. Customer Portal Redesign"
+                required
+              />
+            </div>
+
+            <div class="form-group mt-3">
+              <label class="form-label">Description</label>
+              <textarea
+                id="newProjectDesc"
+                class="form-textarea"
+                rows="2"
+                placeholder="Brief project summary or mission..."
+              ></textarea>
+            </div>
+
+            <div class="grid-2-col mt-3">
+              <div class="form-group">
+                <label class="form-label">Category</label>
+                <input
+                  type="text"
+                  id="newProjectCategory"
+                  class="form-input"
+                  placeholder="e.g. Engineering, Marketing"
+                  value="Product Development"
+                />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Theme Color</label>
+                <select id="newProjectColor" class="form-select">
+                  <option value="#6366f1">Indigo (Default)</option>
+                  <option value="#3b82f6">Blue</option>
+                  <option value="#10b981">Emerald Green</option>
+                  <option value="#ec4899">Pink</option>
+                  <option value="#f59e0b">Amber Orange</option>
+                  <option value="#8b5cf6">Purple</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-group mt-3">
+              <label class="form-label">Invite Initial Team Members</label>
+              <div class="assignees-selector-box" id="newProjectMembersBox">
+                <!-- Populated dynamically -->
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              onclick="app.closeNewProjectModal()"
+            >
+              Cancel
+            </button>
+            <button type="submit" class="btn btn-primary">
+              Create Project
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Modal: Invite Member -->
+    <div class="modal-backdrop" id="inviteMemberModal" style="display: none">
+      <div class="modal-content modal-sm">
+        <div class="modal-header">
+          <h3><i class="bi bi-person-plus"></i> Add Team Member to Project</h3>
+          <button class="close-modal-btn" onclick="app.closeInviteModal()">
+            &times;
+          </button>
+        </div>
+        <form onsubmit="app.handleAddMember(event)">
+          <div class="modal-body">
+            <div class="form-group">
+              <label class="form-label">Select User</label>
+              <select id="inviteUserSelect" class="form-select" required>
+                <option value="">Choose a team member...</option>
+              </select>
+            </div>
+            <div class="form-group mt-3">
+              <label class="form-label">Role</label>
+              <select id="inviteUserRole" class="form-select">
+                <option value="member">Member</option>
+                <option value="admin">Admin</option>
+              </select>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              onclick="app.closeInviteModal()"
+            >
+              Cancel
+            </button>
+            <button type="submit" class="btn btn-primary">Add Member</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Modal: Authentication (Login / Register / Quick Demo) -->
+    <div class="modal-backdrop" id="authModal" style="display: none">
+      <div class="modal-content modal-auth">
+        <div class="modal-header auth-header">
+          <div class="brand-logo">
+            <i class="bi bi-kanban-fill"></i>
+            <span>TaskFlow</span>
+          </div>
+          <button class="close-modal-btn" onclick="app.closeAuthModal()">
+            &times;
+          </button>
+        </div>
+
+        <!-- Quick 1-Click Demo Login Bar -->
+        <div class="demo-login-box">
+          <div class="demo-login-header">
+            <i class="bi bi-lightning-charge-fill"></i>
+            <span>1-Click Quick Demo Sign-In (Test Collaboration)</span>
+          </div>
+          <div class="demo-users-grid">
+            <button
+              class="demo-user-chip"
+              onclick="app.quickDemoLogin('alex_rivera')"
+            >
+              <span class="avatar-circle">AR</span>
+              <div class="chip-info">
+                <strong>Alex Rivera</strong>
+                <small>Product Manager</small>
+              </div>
+            </button>
+            <button
+              class="demo-user-chip"
+              onclick="app.quickDemoLogin('sarah_chen')"
+            >
+              <span class="avatar-circle">SC</span>
+              <div class="chip-info">
+                <strong>Sarah Chen</strong>
+                <small>Lead Developer</small>
+              </div>
+            </button>
+            <button
+              class="demo-user-chip"
+              onclick="app.quickDemoLogin('marcus_j')"
+            >
+              <span class="avatar-circle">MJ</span>
+              <div class="chip-info">
+                <strong>Marcus Johnson</strong>
+                <small>Frontend Dev</small>
+              </div>
+            </button>
+            <button
+              class="demo-user-chip"
+              onclick="app.quickDemoLogin('elena_r')"
+            >
+              <span class="avatar-circle">ER</span>
+              <div class="chip-info">
+                <strong>Elena Rostova</strong>
+                <small>UI/UX Designer</small>
+              </div>
+            </button>
+          </div>
+        </div>
+
+        <div class="auth-tabs">
+          <button
+            class="auth-tab-btn active"
+            id="tabLoginBtn"
+            onclick="app.switchAuthTab('login')"
+          >
+            Sign In
+          </button>
+          <button
+            class="auth-tab-btn"
+            id="tabRegisterBtn"
+            onclick="app.switchAuthTab('register')"
+          >
+            Create Account
+          </button>
+        </div>
+
+        <!-- Login Form -->
+        <form
+          id="loginForm"
+          class="auth-form"
+          onsubmit="app.handleLogin(event)"
+        >
+          <div class="form-group">
+            <label class="form-label">Email or Username</label>
+            <input
+              type="text"
+              id="loginIdentifier"
+              class="form-input"
+              placeholder="alex@example.com or alex_rivera"
+              required
+            />
+          </div>
+          <div class="form-group mt-3">
+            <label class="form-label">Password</label>
+            <input
+              type="password"
+              id="loginPassword"
+              class="form-input"
+              placeholder="••••••••"
+              required
+            />
+          </div>
+          <div
+            id="loginError"
+            class="auth-error-msg"
+            style="display: none"
+          ></div>
+          <button type="submit" class="btn btn-primary btn-block mt-4">
+            Sign In
+          </button>
+        </form>
+
+        <!-- Register Form -->
+        <form
+          id="registerForm"
+          class="auth-form"
+          onsubmit="app.handleRegister(event)"
+          style="display: none"
+        >
+          <div class="form-group">
+            <label class="form-label">Full Name *</label>
+            <input
+              type="text"
+              id="regName"
+              class="form-input"
+              placeholder="Alex Rivera"
+              required
+            />
+          </div>
+          <div class="form-group mt-2">
+            <label class="form-label">Username *</label>
+            <input
+              type="text"
+              id="regUsername"
+              class="form-input"
+              placeholder="alex_rivera"
+              required
+            />
+          </div>
+          <div class="form-group mt-2">
+            <label class="form-label">Email Address *</label>
+            <input
+              type="email"
+              id="regEmail"
+              class="form-input"
+              placeholder="alex@example.com"
+              required
+            />
+          </div>
+          <div class="form-group mt-2">
+            <label class="form-label">Role Title</label>
+            <input
+              type="text"
+              id="regRole"
+              class="form-input"
+              placeholder="e.g. Frontend Engineer"
+            />
+          </div>
+          <div class="form-group mt-2">
+            <label class="form-label">Password * (min 6 characters)</label>
+            <input
+              type="password"
+              id="regPassword"
+              class="form-input"
+              placeholder="••••••••"
+              minlength="6"
+              required
+            />
+          </div>
+          <div
+            id="registerError"
+            class="auth-error-msg"
+            style="display: none"
+          ></div>
+          <button type="submit" class="btn btn-primary btn-block mt-4">
+            Create Account
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <!-- Scripts -->
+    <!-- Socket.IO Client (Provided automatically by Express /socket.io/socket.io.js) -->
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/socket.js"></script>
+    <script src="js/app.js"></script>
+  </body>
+</html>

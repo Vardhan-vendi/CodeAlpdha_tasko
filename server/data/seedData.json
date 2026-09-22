@@ -1,0 +1,222 @@
+{
+  "users": [
+    {
+      "name": "Alex Rivera",
+      "username": "alex_rivera",
+      "email": "alex@example.com",
+      "password": "password123",
+      "roleTitle": "Lead Product Manager",
+      "avatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
+      "bio": "Building intuitive collaborative workflow products for agile teams."
+    },
+    {
+      "name": "Sarah Chen",
+      "username": "sarah_chen",
+      "email": "sarah@example.com",
+      "password": "password123",
+      "roleTitle": "Principal Full Stack Engineer",
+      "avatar": "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&auto=format&fit=crop&q=80",
+      "bio": "Cloud architectures, real-time distributed systems, and clean APIs."
+    },
+    {
+      "name": "Marcus Johnson",
+      "username": "marcus_j",
+      "email": "marcus@example.com",
+      "password": "password123",
+      "roleTitle": "Frontend Architect",
+      "avatar": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80",
+      "bio": "Obsessed with buttery 60fps animations, accessible design, and delightful UX."
+    },
+    {
+      "name": "Elena Rostova",
+      "username": "elena_r",
+      "email": "elena@example.com",
+      "password": "password123",
+      "roleTitle": "Lead Product Designer",
+      "avatar": "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80",
+      "bio": "Crafting human-centered UI kits, design tokens, and user journeys."
+    },
+    {
+      "name": "David Kim",
+      "username": "david_kim",
+      "email": "david@example.com",
+      "password": "password123",
+      "roleTitle": "QA & Reliability Engineer",
+      "avatar": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80",
+      "bio": "Automation enthusiast ensuring zero-defect releases and peak performance."
+    }
+  ],
+  "projects": [
+    {
+      "name": "TaskFlow SaaS Platform",
+      "description": "Collaborative project management dashboard with real-time kanban boards, drag & drop, and socket events.",
+      "category": "Engineering",
+      "color": "#6366f1",
+      "ownerUsername": "alex_rivera",
+      "memberUsernames": ["sarah_chen", "marcus_j", "elena_r", "david_kim"],
+      "tasks": [
+        {
+          "title": "Design responsive Kanban UI layout",
+          "description": "Create modern, aesthetic column cards with smooth drag-and-drop handles, hover states, and priority badges.",
+          "columnId": "done",
+          "priority": "high",
+          "labels": ["UI/UX", "Design"],
+          "assigneeUsernames": ["elena_r", "marcus_j"],
+          "checklist": [
+            { "text": "Draft color palette & typography", "completed": true },
+            { "text": "Create column container component", "completed": true },
+            { "text": "Add responsive mobile viewport breakpoints", "completed": true }
+          ],
+          "comments": [
+            { "authorUsername": "elena_r", "text": "The glassmorphism card elevation looks super clean!" },
+            { "authorUsername": "alex_rivera", "text": "Approved! Let's move this to production." }
+          ]
+        },
+        {
+          "title": "Setup JWT Auth & Database Models",
+          "description": "Implement authentication endpoints, password hashing with bcryptjs, and MongoDB Atlas models for Users, Projects, Tasks, and Comments.",
+          "columnId": "done",
+          "priority": "urgent",
+          "labels": ["Backend", "Security"],
+          "assigneeUsernames": ["sarah_chen"],
+          "checklist": [
+            { "text": "Configure MongoDB Atlas connection", "completed": true },
+            { "text": "Build User and Project schemas", "completed": true },
+            { "text": "JWT authorization middleware guard", "completed": true }
+          ],
+          "comments": [
+            { "authorUsername": "sarah_chen", "text": "Atlas connection tested and connection pooling configured." }
+          ]
+        },
+        {
+          "title": "Integrate Real-Time WebSocket Synchronization",
+          "description": "Implement Socket.IO channels so task moves, updates, and comments reflect instantaneously across team member screens without page reload.",
+          "columnId": "in_progress",
+          "priority": "urgent",
+          "labels": ["WebSockets", "FullStack"],
+          "assigneeUsernames": ["sarah_chen", "marcus_j"],
+          "checklist": [
+            { "text": "Socket.IO server setup with project rooms", "completed": true },
+            { "text": "Emit task:moved and task:created events", "completed": true },
+            { "text": "Client-side optimistic updates", "completed": false }
+          ],
+          "comments": [
+            { "authorUsername": "marcus_j", "text": "Tested drag event emits; latency is under 15ms locally!" },
+            { "authorUsername": "sarah_chen", "text": "Added room broadcast filtering so only members of this project receive events." }
+          ]
+        },
+        {
+          "title": "Implement Task Drag & Drop Experience",
+          "description": "Support smooth dragging across columns, reordering inside a column, and touch-friendly interaction for tablet users.",
+          "columnId": "in_progress",
+          "priority": "high",
+          "labels": ["Frontend", "Interactions"],
+          "assigneeUsernames": ["marcus_j"],
+          "checklist": [
+            { "text": "HTML5 Drag and Drop events", "completed": true },
+            { "text": "Ghost drag image styling", "completed": true },
+            { "text": "Save new column and position on drop", "completed": false }
+          ],
+          "comments": [
+            { "authorUsername": "marcus_j", "text": "Working on the drop indicator placeholder animation." }
+          ]
+        },
+        {
+          "title": "Build In-App Notification Center",
+          "description": "Bell icon with badge counter showing real-time task assignments, mentions, and project updates with 1-click mark as read.",
+          "columnId": "review",
+          "priority": "medium",
+          "labels": ["Feature", "Frontend"],
+          "assigneeUsernames": ["elena_r", "alex_rivera"],
+          "checklist": [
+            { "text": "Dropdown popover UI", "completed": true },
+            { "text": "Notification REST endpoints", "completed": true },
+            { "text": "Socket trigger on task assignment", "completed": true }
+          ],
+          "comments": [
+            { "authorUsername": "alex_rivera", "text": "Looking sharp! Please make sure unread count decrements on click." }
+          ]
+        },
+        {
+          "title": "Write API Documentation & Automated Tests",
+          "description": "Document all REST and WebSocket contracts, provide curl examples, and verify data integrity.",
+          "columnId": "todo",
+          "priority": "low",
+          "labels": ["Docs", "QA"],
+          "assigneeUsernames": ["david_kim"],
+          "checklist": [
+            { "text": "Document auth endpoints", "completed": false },
+            { "text": "Document task CRUD endpoints", "completed": false },
+            { "text": "Integration sanity tests", "completed": false }
+          ],
+          "comments": []
+        },
+        {
+          "title": "Cross-Browser QA & Accessibility Audit",
+          "description": "Ensure keyboard navigation, ARIA attributes, and color contrast ratios meet WCAG 2.1 AA standards across Chrome, Firefox, Safari, and Edge.",
+          "columnId": "todo",
+          "priority": "medium",
+          "labels": ["QA", "A11y"],
+          "assigneeUsernames": ["david_kim", "elena_r"],
+          "checklist": [
+            { "text": "Keyboard focus indicators", "completed": false },
+            { "text": "Screen reader aria-labels", "completed": false },
+            { "text": "Contrast verification", "completed": false }
+          ],
+          "comments": []
+        }
+      ]
+    },
+    {
+      "name": "Mobile App Launch 2.0",
+      "description": "Next-generation iOS and Android companion app with offline synchronization and biometric auth.",
+      "category": "Mobile",
+      "color": "#ec4899",
+      "ownerUsername": "sarah_chen",
+      "memberUsernames": ["alex_rivera", "marcus_j", "elena_r"],
+      "tasks": [
+        {
+          "title": "Design Mobile App Wireframes & Prototypes",
+          "description": "Complete Figma interactive prototype for onboarding flow, dashboard widgets, and task creation sheet.",
+          "columnId": "done",
+          "priority": "high",
+          "labels": ["Figma", "Design"],
+          "assigneeUsernames": ["elena_r"],
+          "checklist": [
+            { "text": "Onboarding splash & auth sheets", "completed": true },
+            { "text": "Task list and card details bottom sheet", "completed": true }
+          ],
+          "comments": [
+            { "authorUsername": "sarah_chen", "text": "Prototypes look gorgeous, team approved!" }
+          ]
+        },
+        {
+          "title": "Implement Offline Sync Architecture",
+          "description": "Local SQLite cache with background reconciliation queue when network connection resumes.",
+          "columnId": "in_progress",
+          "priority": "urgent",
+          "labels": ["Architecture", "Core"],
+          "assigneeUsernames": ["sarah_chen", "marcus_j"],
+          "checklist": [
+            { "text": "Sync state machine", "completed": true },
+            { "text": "Conflict resolution strategies", "completed": false }
+          ],
+          "comments": []
+        },
+        {
+          "title": "Push Notification Gateway Integration",
+          "description": "Connect APNS and FCM service handlers for real-time task alerts and reminders.",
+          "columnId": "todo",
+          "priority": "medium",
+          "labels": ["Infra", "Mobile"],
+          "assigneeUsernames": ["alex_rivera"],
+          "checklist": [
+            { "text": "Configure APNS certificates", "completed": false },
+            { "text": "Setup FCM service credentials", "completed": false }
+          ],
+          "comments": []
+        }
+      ]
+    }
+  ]
+}
